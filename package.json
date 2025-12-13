@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "FFmpeg Video Converter with GUI",
   "author": {
-  "name": "Clay MacDonald",
-  "email": "claymaver@proton.me"
+    "name": "Clay MacDonald",
+    "email": "claymaver@proton.me"
   },
   "main": "main.js",
   "scripts": {
@@ -21,8 +21,8 @@
     "publish": null,
     "win": {
       "target": [
-        "portable",
-        "nsis"
+        "nsis",
+        "zip"
       ],
       "icon": "build/icon.ico"
     },
@@ -35,6 +35,8 @@
         "AppImage",
         "deb"
       ],
+      "maintainer": "Clay MacDonald <claymaver@proton.me>",
+      "category": "Utility",
       "icon": "build/icon.png"
     },
     "files": [
