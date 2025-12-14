@@ -1,5 +1,5 @@
 // ============================================================================
-// Save as: renderer.js
+// renderer.js
 // ============================================================================
 
 let videoFiles = [];
@@ -212,7 +212,7 @@ function applyPreset() {
 
 async function selectFolder() {
   if (!ffmpegInstalled) {
-    document.getElementById('fileListHeader').textContent = '⚠️ Please install FFmpeg first';
+    document.getElementById('status').textContent = '⚠️ Please install FFmpeg first';
     return;
   }
   
@@ -225,20 +225,38 @@ async function selectFolder() {
     document.getElementById('convertBtn').disabled = videoFiles.length === 0;
     
     displayFiles();
+    document.getElementById('status').textContent = `Found ${videoFiles.length} video files`;
+  }
+}
+
+async function selectFile() {
+  if (!ffmpegInstalled) {
+    document.getElementById('status').textContent = '⚠️ Please install FFmpeg first';
+    return;
+  }
+  
+  const filePath = await window.api.selectFile();
+  if (filePath) {
+    const fileInfo = await window.api.getSingleFile(filePath);
+    videoFiles = [fileInfo];
+    
+    document.getElementById('totalFiles').textContent = 1;
+    document.getElementById('convertBtn').disabled = false;
+    
+    displayFiles();
+    document.getElementById('status').textContent = `Selected: ${fileInfo.name}`;
   }
 }
 
 function displayFiles() {
   const fileList = document.getElementById('fileList');
-  const fileListHeader = document.getElementById('fileListHeader');
-  
-  fileListHeader.textContent = `${videoFiles.length} file(s) ready to convert`;
+  fileList.style.display = 'block';
   
   fileList.innerHTML = videoFiles.map((file, index) => `
     <div class="file-item" id="file-${index}">
-      <div class="file-name" title="${file.name}">${file.name}</div>
+      <div class="file-name">${file.name}</div>
       <div class="file-details">
-        ${file.size} MB → ${file.cleanName}
+        Size: ${file.size} MB → ${file.cleanName}
       </div>
       <div class="progress-bar" style="display: none;">
         <div class="progress-fill" style="width: 0%"></div>
@@ -250,9 +268,17 @@ function displayFiles() {
 async function startConversion() {
   if (converting || !ffmpegInstalled) return;
   
+  const replaceOriginals = document.getElementById('replaceOriginals').checked;
+  
+  // Warn user if replace is enabled
+  if (replaceOriginals) {
+    if (!confirm('⚠️ WARNING: Original files will be permanently deleted after successful conversion.\n\nAre you sure you want to continue?')) {
+      return;
+    }
+  }
+  
   converting = true;
   document.getElementById('convertBtn').disabled = true;
-  document.getElementById('fileListHeader').textContent = 'Converting...';
   stats = { total: videoFiles.length, success: 0, failed: 0 };
   
   const settings = {
@@ -269,9 +295,10 @@ async function startConversion() {
     const file = videoFiles[i];
     const fileElement = document.getElementById(`file-${i}`);
     const progressBar = fileElement.querySelector('.progress-bar');
+    const progressFill = fileElement.querySelector('.progress-fill');
     
     progressBar.style.display = 'block';
-    document.getElementById('fileListHeader').textContent = `Converting ${i + 1}/${videoFiles.length}: ${file.name}`;
+    document.getElementById('status').textContent = `Converting ${i + 1}/${videoFiles.length}: ${file.name}`;
     
     try {
       const result = await window.api.convertFile(file, settings);
@@ -279,9 +306,28 @@ async function startConversion() {
       if (result.success) {
         stats.success++;
         fileElement.style.borderLeftColor = '#4caf50';
-        fileElement.querySelector('.file-details').innerHTML = `
-          ✅ ${file.size} MB → ${result.outputSize} MB (Saved ${result.saved} MB)
-        `;
+        
+        // Replace original if toggle is enabled
+        if (replaceOriginals) {
+          const outputPath = result.outputPath || `converted/${file.cleanName}`;
+          const replaceResult = await window.api.replaceOriginal(file.path, outputPath);
+          
+          if (replaceResult.success) {
+            fileElement.querySelector('.file-details').innerHTML = `
+              ✅ Success! ${file.size} MB → ${result.outputSize} MB (Saved ${result.saved} MB)<br>
+              🔄 Original file replaced
+            `;
+          } else {
+            fileElement.querySelector('.file-details').innerHTML = `
+              ✅ Converted! ${file.size} MB → ${result.outputSize} MB (Saved ${result.saved} MB)<br>
+              ⚠️ Could not replace original: ${replaceResult.error}
+            `;
+          }
+        } else {
+          fileElement.querySelector('.file-details').innerHTML = `
+            ✅ Success! ${file.size} MB → ${result.outputSize} MB (Saved ${result.saved} MB)
+          `;
+        }
       }
     } catch (error) {
       stats.failed++;
@@ -297,7 +343,12 @@ async function startConversion() {
   if (ffmpegInstalled) {
     document.getElementById('convertBtn').disabled = false;
   }
-  document.getElementById('fileListHeader').textContent = `✅ Complete! ${stats.success} succeeded, ${stats.failed} failed`;
+  
+  if (replaceOriginals) {
+    document.getElementById('status').textContent = `✅ Complete! ${stats.success} converted and replaced, ${stats.failed} failed`;
+  } else {
+    document.getElementById('status').textContent = `✅ Complete! ${stats.success} succeeded, ${stats.failed} failed`;
+  }
 }
 
 window.api.onProgress((data) => {
