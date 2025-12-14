@@ -1,7 +1,3 @@
-// ============================================================================
-//  main.js
-// ============================================================================
-
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -15,7 +11,7 @@ let ffmpegInstalled = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
+    width: 1000,
     height: 700,
     webPreferences: {
       nodeIntegration: false,
@@ -52,7 +48,7 @@ async function checkFFmpeg() {
   }
 }
 
-// Install FFmpeg using winget
+// Install FFmpeg
 ipcMain.handle('install-ffmpeg', async () => {
   const platform = process.platform;
   
@@ -101,7 +97,6 @@ ipcMain.handle('install-ffmpeg', async () => {
         mainWindow.webContents.send('install-progress', 'Installing FFmpeg via apt...');
         mainWindow.webContents.send('install-progress', 'This may require administrator password...');
         
-        // Using pkexec for GUI password prompt
         await execAsync('pkexec apt install -y ffmpeg');
         
       } catch (aptError) {
@@ -166,25 +161,6 @@ ipcMain.handle('check-ffmpeg', async () => {
   return ffmpegInstalled;
 });
 
-// Replace original file with converted file
-ipcMain.handle('replace-original', async (event, originalPath, convertedPath) => {
-  try {
-    // Delete original
-    fs.unlinkSync(originalPath);
-    
-    // Move converted file to original location
-    const originalDir = path.dirname(originalPath);
-    const convertedFileName = path.basename(convertedPath);
-    const newPath = path.join(originalDir, convertedFileName);
-    
-    fs.renameSync(convertedPath, newPath);
-    
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
 // Select folder
 ipcMain.handle('select-folder', async () => {
   if (!ffmpegInstalled) {
@@ -207,8 +183,8 @@ ipcMain.handle('select-folder', async () => {
   return null;
 });
 
-// Select single file
-ipcMain.handle('select-file', async () => {
+// Select individual files
+ipcMain.handle('select-files', async () => {
   if (!ffmpegInstalled) {
     dialog.showMessageBox(mainWindow, {
       type: 'warning',
@@ -220,17 +196,35 @@ ipcMain.handle('select-file', async () => {
   }
   
   const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile'],
+    properties: ['openFile', 'multiSelections'],
     filters: [
-      { name: 'Video Files', extensions: ['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', 'mpg', 'mpeg'] },
+      { name: 'Videos', extensions: ['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', 'mpg', 'mpeg'] },
       { name: 'All Files', extensions: ['*'] }
     ]
   });
   
-  if (!result.canceled && result.filePaths.length > 0) {
-    return result.filePaths[0];
+  if (!result.canceled) {
+    return result.filePaths;
   }
   return null;
+});
+
+// Get video file info for selected files
+ipcMain.handle('get-file-info', async (event, filePaths) => {
+  const videoFiles = filePaths.map(filePath => {
+    const stats = fs.statSync(filePath);
+    const sizeMB = (stats.size / (1024 * 1024)).toFixed(1);
+    const filename = path.basename(filePath);
+    
+    return {
+      name: filename,
+      path: filePath,
+      size: sizeMB,
+      cleanName: cleanFileName(filename)
+    };
+  });
+  
+  return videoFiles;
 });
 
 // Get video files in folder
@@ -254,20 +248,6 @@ ipcMain.handle('get-video-files', async (event, folderPath) => {
     });
   
   return videoFiles;
-});
-
-// Get single video file info
-ipcMain.handle('get-single-file', async (event, filePath) => {
-  const stats = fs.statSync(filePath);
-  const sizeMB = (stats.size / (1024 * 1024)).toFixed(1);
-  const fileName = path.basename(filePath);
-  
-  return {
-    name: fileName,
-    path: filePath,
-    size: sizeMB,
-    cleanName: cleanFileName(fileName)
-  };
 });
 
 // Clean filename
@@ -353,8 +333,7 @@ ipcMain.handle('convert-file', async (event, fileInfo, settings) => {
         success: true,
         inputSize: fileInfo.size,
         outputSize: outputSizeMB,
-        saved: saved,
-        outputPath: outputPath
+        saved: saved
       });
     });
     

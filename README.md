@@ -1,109 +1,51 @@
-# FFmpeg Video Converter (GUI) 🎬
+# FFmpeg Video Converter
 
-A simple cross-platform desktop app for converting videos using FFmpeg — no command line needed. Just point, click, and convert!
+A cross-platform desktop application for batch video conversion with a modern GUI.
 
----
+## Features
 
-## 🚀 Features
+- Batch convert multiple videos
+- Custom presets (save your favorite settings)
+- Real-time progress tracking
+- Modern dark UI
+- One-click FFmpeg installation (Windows/Mac/Linux)
+- Built-in presets for TV shows and movies
+- Support for H.264, H.265, and VP9 codecs
+- Multiple audio codec options
 
-- Cross-platform: Windows, macOS, Linux  
-- Built with Electron  
-- Uses FFmpeg under the hood  
-- Easy video conversion without touching the terminal  
+## Installation
 
----
+### From Release (Recommended)
+Download the latest release for your platform:
+- **Windows**: `.exe` installer or portable `.zip`
+- **macOS**: `.dmg` installer
+- **Linux**: `.AppImage` or `.deb` package
 
-## 🛠 Requirements
-
-Make sure you have the following installed on your system:
-
-- **FFmpeg** installed and on your PATH (if you do not have it, you will be asked if you want to installed it when running the app)
-
-Download FFmpeg here: [https://www.ffmpeg.org/](https://www.ffmpeg.org/)
-
----
-
-## 💻 Running from Source
-
-Follow these steps to get the app running locally:
-
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/Claymaver/ffmpeg-Converter-GUI.git
-cd ffmpeg-Converter-GUI
-```
-
-**2. Install dependencies**
-
+### From Source
 ```bash
 npm install
-```
-
-**3. Start the app**
-
-```bash
 npm start
 ```
 
-The Electron app should launch and be ready to use.
+## Usage
 
----
+1. Install FFmpeg (click the button if not detected)
+2. Select a folder with video files
+3. Choose a preset or customize settings
+4. Click "Convert"
+5. Find converted files in the `converted` subfolder
 
-## 📦 Building for Distribution
-
-We use **electron-builder** to create platform-specific installers.
-
-### Windows
-
+## Building
 ```bash
-npm run dist-win
+# Build for all platforms
+npm run dist
+
+# Build for specific platform
+npm run dist-win    # Windows
+npm run dist-mac    # macOS
+npm run dist-linux  # Linux
 ```
 
-Generates `.exe` (portable) and `.nsis` installer files in the `dist/` folder.
+## License
 
-### macOS
-
-```bash
-npm run dist-mac
-```
-
-Creates a `.dmg` installer in `dist/`.
-
-### Linux
-
-```bash
-npm run dist-linux
-```
-
-Produces `.AppImage` and `.deb` packages in `dist/`.
-
-> All build artifacts are output to the `dist/` directory.
-
----
-
-## ⚠️ Notes
-
-- FFmpeg must be available on your system PATH, or the app won’t find it.  
-- macOS builds aren’t signed, so you may see a security warning the first time you open them.  
-
----
-
-## 📄 About
-
-**Author:** Clay MacDonald  
-Built with Electron + FFmpeg for simple, quick video conversions.
-
----
-
-## ❤️ Contributing
-
-Contributions are welcome! Fork the repo, make your changes, and open a PR.  
-Feel free to open an issue if you spot a bug or have a feature request.
-
----
-
-## 📜 License
-
-Check the `LICENSE` file in the repository.
- 
+MIT
