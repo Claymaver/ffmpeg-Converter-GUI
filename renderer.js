@@ -1,3 +1,23 @@
+// Tab switching
+function switchTab(tabName) {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  
+  // Deactivate all tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Show selected tab content
+  document.getElementById(tabName + '-tab').classList.add('active');
+  
+  // Activate selected tab
+  event.target.classList.add('active');
+}
+
+// Video conversion logic
 let videoFiles = [];
 let converting = false;
 let currentFolder = '';

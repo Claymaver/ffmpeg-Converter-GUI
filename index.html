@@ -30,6 +30,18 @@
       font-size: 24px;
     }
     
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .action-bar button {
+      flex: 1;
+      padding: 12px 20px;
+      font-size: 15px;
+    }
+    
     .two-column {
       display: grid;
       grid-template-columns: 400px 1fr;
@@ -54,6 +66,46 @@
       font-size: 16px;
     }
     
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #444;
+    }
+    
+    .tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      width: auto;
+    }
+    
+    .tab:hover {
+      color: #4fc3f7;
+      background: transparent;
+    }
+    
+    .tab.active {
+      color: #4fc3f7;
+      border-bottom-color: #4fc3f7;
+      background: transparent;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
     .setting-group {
       margin-bottom: 12px;
     }
@@ -65,7 +117,7 @@
       font-size: 13px;
     }
     
-    select, input {
+    select, input[type="number"], input[type="text"] {
       width: 100%;
       padding: 6px 8px;
       background: #1e1e1e;
@@ -73,6 +125,11 @@
       color: #e0e0e0;
       border-radius: 4px;
       font-size: 13px;
+    }
+    
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
     }
     
     small {
@@ -142,7 +199,7 @@
       background: #2d2d2d;
       border-radius: 8px;
       padding: 15px;
-      max-height: calc(100vh - 120px);
+      max-height: calc(100vh - 200px);
       overflow-y: auto;
     }
     
@@ -208,18 +265,32 @@
       width: auto;
       padding: 8px 16px;
     }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📹 FFmpeg Video Converter</h1>
+    <h1>FFmpeg Video Converter</h1>
     
     <!-- FFmpeg Installation Banner -->
     <div id="ffmpegBanner" style="display: none;">
-      <div style="font-weight: bold; margin-bottom: 8px;">⚠️ FFmpeg Not Detected</div>
+      <div style="font-weight: bold; margin-bottom: 8px;">FFmpeg Not Detected</div>
       <div style="margin-bottom: 8px; font-size: 13px;">FFmpeg is required to convert videos.</div>
-      <button onclick="installFFmpeg()" id="installBtn">🔧 Install FFmpeg Automatically</button>
+      <button onclick="installFFmpeg()" id="installBtn">Install FFmpeg Automatically</button>
       <div id="installProgress" style="margin-top: 8px; font-size: 11px; color: #ffeb3b;"></div>
+    </div>
+    
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button onclick="selectFolder()">Select Folder</button>
+      <button onclick="selectFiles()">Select Files</button>
+      <button id="convertBtn" onclick="startConversion()" disabled>Start Conversion</button>
     </div>
     
     <div class="two-column">
@@ -227,101 +298,99 @@
       <div class="left-panel">
         <!-- Preset Management -->
         <div class="settings-panel">
-          <h3>💾 Presets</h3>
+          <h3>Presets</h3>
           <div class="setting-group">
             <select id="preset-select" onchange="loadPreset()">
               <option value="">Select a preset...</option>
-              <option value="tv">📺 TV Shows (720p, CRF 28)</option>
-              <option value="movie">🎬 Movies (1080p, CRF 23)</option>
-              <option value="high-quality">✨ High Quality (1080p, CRF 18)</option>
-              <option value="small-size">💾 Small Size (720p, CRF 30)</option>
+              <option value="tv">TV Shows (720p, CRF 28)</option>
+              <option value="movie">Movies (1080p, CRF 23)</option>
+              <option value="high-quality">High Quality (1080p, CRF 18)</option>
+              <option value="small-size">Small Size (720p, CRF 30)</option>
             </select>
           </div>
           <div class="setting-group">
             <div style="display: flex; gap: 5px;">
               <input type="text" id="preset-name" placeholder="Preset name..." style="flex: 1;">
-              <button onclick="savePreset()" style="width: auto; padding: 6px 12px;">💾</button>
-              <button onclick="deletePreset()" style="width: auto; padding: 6px 12px; background: #f44336;">🗑️</button>
+              <button onclick="savePreset()" style="width: auto; padding: 6px 12px;">Save</button>
+              <button onclick="deletePreset()" style="width: auto; padding: 6px 12px; background: #f44336;">Delete</button>
             </div>
           </div>
         </div>
         
-        <!-- Video Settings -->
+        <!-- Tabbed Settings -->
         <div class="settings-panel">
-          <h3>🎥 Video</h3>
-          <div class="setting-group">
-            <label>Resolution Height (px)</label>
-            <input type="number" id="height" value="720" min="144" max="2160" step="1">
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('video')">Video</button>
+            <button class="tab" onclick="switchTab('audio')">Audio</button>
+            <button class="tab" onclick="switchTab('post')">Post-Processing</button>
           </div>
-          <div class="setting-group">
-            <label>Quality (CRF)</label>
-            <input type="number" id="crf" value="28" min="0" max="51" step="1">
-            <small>Lower = better (18-28 recommended)</small>
+          
+          <!-- Video Tab -->
+          <div id="video-tab" class="tab-content active">
+            <div class="setting-group">
+              <label>Resolution Height (px)</label>
+              <input type="number" id="height" value="720" min="144" max="2160" step="1">
+            </div>
+            <div class="setting-group">
+              <label>Quality (CRF)</label>
+              <input type="number" id="crf" value="28" min="0" max="51" step="1">
+              <small>Lower = better (18-28 recommended)</small>
+            </div>
+            <div class="setting-group">
+              <label>Preset</label>
+              <select id="speed">
+                <option value="ultrafast">Ultra Fast</option>
+                <option value="superfast">Super Fast</option>
+                <option value="veryfast">Very Fast</option>
+                <option value="faster">Faster</option>
+                <option value="fast">Fast</option>
+                <option value="medium">Medium</option>
+                <option value="slow" selected>Slow</option>
+                <option value="slower">Slower</option>
+                <option value="veryslow">Very Slow</option>
+              </select>
+              <small>Slower = better compression</small>
+            </div>
+            <div class="setting-group">
+              <label>Codec</label>
+              <select id="codec">
+                <option value="libx264" selected>H.264 (x264)</option>
+                <option value="libx265">H.265 (x265)</option>
+                <option value="libvpx-vp9">VP9</option>
+              </select>
+            </div>
           </div>
-          <div class="setting-group">
-            <label>Preset</label>
-            <select id="speed">
-              <option value="ultrafast">Ultra Fast</option>
-              <option value="superfast">Super Fast</option>
-              <option value="veryfast">Very Fast</option>
-              <option value="faster">Faster</option>
-              <option value="fast">Fast</option>
-              <option value="medium">Medium</option>
-              <option value="slow" selected>Slow</option>
-              <option value="slower">Slower</option>
-              <option value="veryslow">Very Slow</option>
-            </select>
-            <small>Slower = better compression</small>
+          
+          <!-- Audio Tab -->
+          <div id="audio-tab" class="tab-content">
+            <div class="setting-group">
+              <label>Codec</label>
+              <select id="audio-codec">
+                <option value="aac" selected>AAC</option>
+                <option value="libopus">Opus</option>
+                <option value="libmp3lame">MP3</option>
+                <option value="copy">Copy (No re-encode)</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label>Bitrate (kbps)</label>
+              <input type="number" id="audio" value="192" min="64" max="320" step="32">
+            </div>
           </div>
-          <div class="setting-group">
-            <label>Codec</label>
-            <select id="codec">
-              <option value="libx264" selected>H.264 (x264)</option>
-              <option value="libx265">H.265 (x265)</option>
-              <option value="libvpx-vp9">VP9</option>
-            </select>
+          
+          <!-- Post-Processing Tab -->
+          <div id="post-tab" class="tab-content">
+            <div class="setting-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="auto-replace">
+                <span>Auto-replace original files after conversion</span>
+              </label>
+              <small style="color: #f44336;">This will delete originals and move converted files</small>
+            </div>
           </div>
         </div>
         
-        <!-- Audio Settings -->
-        <div class="settings-panel">
-          <h3>🔊 Audio</h3>
-          <div class="setting-group">
-            <label>Codec</label>
-            <select id="audio-codec">
-              <option value="aac" selected>AAC</option>
-              <option value="libopus">Opus</option>
-              <option value="libmp3lame">MP3</option>
-              <option value="copy">Copy (No re-encode)</option>
-            </select>
-          </div>
-          <div class="setting-group">
-            <label>Bitrate (kbps)</label>
-            <input type="number" id="audio" value="192" min="64" max="320" step="32">
-          </div>
-        </div>
-
-        <!-- Post-Processing Settings -->
-        <div class="settings-panel">
-          <h3>⚙️ Post-Processing</h3>
-          <div class="setting-group">
-            <label style="display: flex; align-items: center; cursor: pointer;">
-              <input type="checkbox" id="auto-replace" style="width: auto; margin-right: 8px;">
-              <span>Auto-replace original files after conversion</span>
-            </label>
-            <small style="color: #f44336;">⚠️ This will delete originals and move converted files</small>
-          </div>
-        </div>
-        
-        <!-- Actions & Stats -->
-      <div class="button-row">
-        <button onclick="selectFolder()">📁 Folder</button>
-        <button onclick="selectFiles()">📄 Files</button>
-      </div>
-      <div style="margin-top: 10px;">
-        <button id="convertBtn" onclick="startConversion()" disabled>▶️ Convert</button>
-      </div>
-      
+        <!-- Stats -->
         <div class="stats">
           <div class="stat-box">
             <div class="stat-value" id="totalFiles">0</div>
