@@ -6,14 +6,19 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+
+    "build:ci": "electron-builder --publish always --draft --config.extraMetadata.buildNumber=$GITHUB_RUN_NUMBER",
+
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
+
     "dist": "electron-builder",
     "dist-win": "electron-builder --win",
     "dist-mac": "electron-builder --mac",
     "dist-linux": "electron-builder --linux",
+
     "pack": "electron-builder --dir",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -103,16 +108,8 @@
       "title": "${productName} ${version}",
       "icon": "assets/icon.icns",
       "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
       ]
     },
     "publish": [

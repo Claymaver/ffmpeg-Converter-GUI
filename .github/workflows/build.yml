@@ -1,154 +1,37 @@
-name: Build and Release
+name: Build
 
 on:
   push:
-    branches:
-      - main
-      - master
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
 
 jobs:
   build:
-    name: Build ${{ matrix.os }}
+    name: Build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-    
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Cache Electron binaries
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/electron
-            ~/.cache/electron-builder
-          key: ${{ runner.os }}-electron-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-v2-
-      
+          node-version: 18
+          cache: npm
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Fix app-builder permissions (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          echo "Checking for app-builder binaries..."
-          if [[ "$(uname)" == "Linux" ]]; then
-            if [ -f "node_modules/app-builder-bin/linux/x64/app-builder" ]; then
-              chmod +x node_modules/app-builder-bin/linux/x64/app-builder
-              echo "✓ Fixed Linux app-builder permissions"
-            else
-              echo "⚠ Linux app-builder not found"
-            fi
-          elif [[ "$(uname)" == "Darwin" ]]; then
-            if [ -f "node_modules/app-builder-bin/mac/x64/app-builder" ]; then
-              chmod +x node_modules/app-builder-bin/mac/x64/app-builder
-              echo "✓ Fixed macOS app-builder permissions"
-            else
-              echo "⚠ macOS app-builder not found"
-            fi
-          fi
-        shell: bash
-      
-      - name: Ensure app-builder is executable (redundant check)
-        if: runner.os != 'Windows'
-        run: |
-          echo "Final permission check before build..."
-          if [[ "$(uname)" == "Linux" ]]; then
-            chmod -R +x node_modules/app-builder-bin/linux/ 2>/dev/null || true
-            ls -la node_modules/app-builder-bin/linux/x64/app-builder || echo "Binary not found"
-          elif [[ "$(uname)" == "Darwin" ]]; then
-            chmod -R +x node_modules/app-builder-bin/mac/ 2>/dev/null || true
-            ls -la node_modules/app-builder-bin/mac/x64/app-builder || echo "Binary not found"
-          fi
-        shell: bash
-      
-      - name: Build application
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            npm run dist-linux
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            npm run dist-mac
-          else
-            npm run dist-win
-          fi
-        shell: bash
+
+      # Linux-only workaround (still relevant)
+      - name: Fix app-builder permissions
+        if: runner.os == 'Linux'
+        run: chmod -R +x node_modules/app-builder-bin/linux || true
+
+      - name: Build & create draft release
+        run: npm run build:ci
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        timeout-minutes: 60
-      
-      - name: Upload Windows artifacts
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: |
-            dist/*.exe
-            dist/*.zip
-          retention-days: 7
-      
-      - name: Upload macOS artifacts
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-installer
-          path: |
-            dist/*.dmg
-            dist/*.zip
-          retention-days: 7
-      
-      - name: Upload Linux artifacts
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installer
-          path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-          retention-days: 7
-
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist-artifacts
-      
-      - name: Display structure
-        run: ls -R dist-artifacts
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist-artifacts/**/*
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
