@@ -49,14 +49,14 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           echo "Checking for app-builder binaries..."
-          if [ "$RUNNER_OS" == "Linux" ]; then
+          if [[ "$(uname)" == "Linux" ]]; then
             if [ -f "node_modules/app-builder-bin/linux/x64/app-builder" ]; then
               chmod +x node_modules/app-builder-bin/linux/x64/app-builder
               echo "✓ Fixed Linux app-builder permissions"
             else
               echo "⚠ Linux app-builder not found"
             fi
-          elif [ "$RUNNER_OS" == "macOS" ]; then
+          elif [[ "$(uname)" == "Darwin" ]]; then
             if [ -f "node_modules/app-builder-bin/mac/x64/app-builder" ]; then
               chmod +x node_modules/app-builder-bin/mac/x64/app-builder
               echo "✓ Fixed macOS app-builder permissions"
@@ -68,12 +68,12 @@ jobs:
       
       - name: Build application
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npm run dist-win
-          elif [ "$RUNNER_OS" == "macOS" ]; then
+          if [[ "$(uname)" == "Linux" ]]; then
+            npm run dist-linux
+          elif [[ "$(uname)" == "Darwin" ]]; then
             npm run dist-mac
           else
-            npm run dist-linux
+            npm run dist-win
           fi
         shell: bash
         env:
