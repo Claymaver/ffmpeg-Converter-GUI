@@ -23,7 +23,7 @@
     "converter",
     "electron"
   ],
-  "author": "Your Name",
+  "author": "Claymaver",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
@@ -62,7 +62,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": ["x64"]
         },
         {
           "target": "portable",
@@ -76,11 +76,11 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": ["x64"]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": ["x64"]
         }
       ],
       "icon": "assets/icon.icns",
@@ -135,7 +135,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "YOUR_GITHUB_USERNAME",
+        "owner": "Claymaver",
         "repo": "ffmpeg-Converter-GUI"
       }
     ]
