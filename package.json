@@ -93,25 +93,11 @@
         {
           "target": "AppImage",
           "arch": ["x64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["amd64"]
         }
       ],
       "category": "AudioVideo",
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "icon": "assets/icon.png",
-      "deb": {
-        "maintainer": "Clay MacDonald <Claymaver@proton.me>",
-        "priority": "optional",
-        "depends": [
-          "libc6",
-          "libx11-6",
-          "libcairo2",
-          "libgtk-3-0"
-        ]
-      }
+      "icon": "assets/icon.png"
     },
     "nsis": {
       "oneClick": false,
@@ -136,7 +122,10 @@
         "provider": "github",
         "owner": "Claymaver",
         "repo": "FFmpeg-Converter-Pro",
-        "releaseType": "draft"
+        "releaseType": "draft",
+        "releaseAssets": [
+          "**/*.{exe,dmg,AppImage}"
+        ]
       }
     ]
   }
