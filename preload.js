@@ -1,9 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
-  selectFolder: () => ipcRenderer.invoke('select-folder'),
+  selectFolder: (recursive) => ipcRenderer.invoke('select-folder', recursive),
   selectFiles: () => ipcRenderer.invoke('select-files'),
-  getVideoFiles: (folder) => ipcRenderer.invoke('get-video-files', folder),
+  getVideoFiles: (folder, recursive) => ipcRenderer.invoke('get-video-files', folder, recursive),
   getFileInfo: (filePaths) => ipcRenderer.invoke('get-file-info', filePaths),
   convertFile: (fileInfo, settings) => ipcRenderer.invoke('convert-file', fileInfo, settings),
   replaceFile: (originalPath, convertedPath) => ipcRenderer.invoke('replace-file', originalPath, convertedPath),
