@@ -1,15 +1,34 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('api', {
-  selectFolder: (recursive) => ipcRenderer.invoke('select-folder', recursive),
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld('electronAPI', {
+  // File selection
+  selectFolder: () => ipcRenderer.invoke('select-folder'),
   selectFiles: () => ipcRenderer.invoke('select-files'),
-  getVideoFiles: (folder, recursive) => ipcRenderer.invoke('get-video-files', folder, recursive),
-  getFileInfo: (filePaths) => ipcRenderer.invoke('get-file-info', filePaths),
-  convertFile: (fileInfo, settings) => ipcRenderer.invoke('convert-file', fileInfo, settings),
-  replaceFile: (originalPath, convertedPath) => ipcRenderer.invoke('replace-file', originalPath, convertedPath),
-  onProgress: (callback) => ipcRenderer.on('conversion-progress', (event, data) => callback(data)),
+  scanFolder: (path, recursive) => ipcRenderer.invoke('scan-folder', path, recursive),
+  
+  // FFmpeg operations
   checkFFmpeg: () => ipcRenderer.invoke('check-ffmpeg'),
-  installFFmpeg: () => ipcRenderer.invoke('install-ffmpeg'),
-  onFFmpegStatus: (callback) => ipcRenderer.on('ffmpeg-status', (event, data) => callback(data)),
-  onInstallProgress: (callback) => ipcRenderer.on('install-progress', (event, message) => callback(message))
+  probeFile: (filePath) => ipcRenderer.invoke('probe-file', filePath),
+  convertFile: (filePath, settings) => ipcRenderer.invoke('convert-file', filePath, settings),
+  
+  // Dialogs
+  showError: (message) => ipcRenderer.invoke('show-error', message),
+  showInfo: (title, message) => ipcRenderer.invoke('show-info', title, message),
+  
+  // Event listeners
+  onConversionProgress: (callback) => {
+    ipcRenderer.on('conversion-progress', (event, data) => callback(data));
+  },
+  
+  onConversionLog: (callback) => {
+    ipcRenderer.on('conversion-log', (event, message) => callback(message));
+  },
+  
+  removeAllListeners: (channel) => {
+    ipcRenderer.removeAllListeners(channel);
+  }
 });
+
+console.log('Preload script loaded');
