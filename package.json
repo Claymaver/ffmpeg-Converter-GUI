@@ -122,7 +122,10 @@
         "provider": "github",
         "owner": "Claymaver",
         "repo": "FFmpeg-Converter-Pro",
-        "releaseType": "draft"
+        "releaseType": "draft",
+        "releaseAssets": [
+          "**/*.{exe,dmg,AppImage}"
+        ]
       }
     ]
   }
