@@ -64,7 +64,11 @@
       }
     ],
     "compression": "store",
-    "asar": false,
+    "asar": true,
+    "asarUnpack": [
+      "**/ffmpeg",
+      "**/ffprobe"
+    ],
     "win": {
       "target": [
         {
@@ -92,7 +96,8 @@
         }
       ],
       "category": "AudioVideo",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "assets/icon.png"
     },
     "nsis": {
       "oneClick": false,
