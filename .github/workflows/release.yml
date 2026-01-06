@@ -54,10 +54,16 @@ jobs:
         with:
           path: dist
 
-      - name: flatten artifacts
+      - name: Collect release files
         run: |
-          mkdir -p releae
-          find dist -type f -maxdepth 2 -exec mv {} release/ \;
+          mkdir -p release
+          find dist -type f \( \
+            -name "*.exe" -o \
+            -name "*.dmg" -o \
+            -name "*.deb" -o \
+            -name "*.AppImage" -o \
+            -name "*.rpm" \
+          \) -exec mv {} release/ \;
 
       - name: Read version from package.json
         id: version
