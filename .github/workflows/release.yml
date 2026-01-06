@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -56,41 +56,19 @@ jobs:
             dist/*.deb
 
   publish:
-    needs: release
     runs-on: ubuntu-latest
-
+    needs: release
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-installer
-          path: dist/
-
-      - name: Download macOS Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-installer
-          path: dist/
-
-      - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-installer
-          path: dist/
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/*.exe
-            dist/*.portable.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-          draft: false
+            dist/windows-installer/*.exe
+            dist/windows-installer/*.portable.exe
+            dist/macos-installer/*.dmg
+            dist/linux-installer/*.AppImage
+            dist/linux-installer/*.deb
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
