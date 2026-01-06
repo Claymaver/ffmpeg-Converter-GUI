@@ -2,6 +2,8 @@ name: Build and Release
 
 on:
   push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   release:
@@ -33,7 +35,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.portable.exe
 
       - name: Upload Artifacts (macOS)
         if: matrix.os == 'macos-latest'
@@ -47,7 +51,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-installer
-          path: dist/*.AppImage
+          path: |
+            dist/*.AppImage
+            dist/*.deb
 
   publish:
     needs: release
@@ -80,8 +86,10 @@ jobs:
         with:
           files: |
             dist/*.exe
+            dist/*.portable.exe
             dist/*.dmg
             dist/*.AppImage
+            dist/*.deb
           draft: false
           prerelease: false
         env:
