@@ -1,98 +1,79 @@
 name: Build and Release
 
-permissions:
-  contents: write
-
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - name: Check out Git repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Build Electron App
+      - name: Build app
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Artifacts (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-installer
-          path: |
-            dist/*.exe
-            dist/*.portable.exe
-
-      - name: Upload Artifacts (macOS)
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-installer
-          path: dist/*.dmg
-
-      - name: Upload Artifacts (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installer
-          path: |
-            dist/*.AppImage
-            dist/*.deb
+          name: ${{ matrix.os }}
+          path: dist/
+          if-no-files-found: error
 
   publish:
+    needs: build
     runs-on: ubuntu-latest
-    needs: release
 
     steps:
-      - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-installer
-          path: dist/windows-installer
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Download macOS Artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: macos-installer
-          path: dist/macos-installer
+          path: dist
 
-      - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-installer
-          path: dist/linux-installer
-      - name: Create Release
+      - name: Read version from package.json
+        id: version
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Build ${{ github.run_number }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
           target_commitish: main
-          files: |
-            dist/windows-installer/*.exe
-            dist/windows-installer/*.portable.exe
-            dist/macos-installer/*.dmg
-            dist/linux-installer/*.AppImage
-            dist/linux-installer/*.deb
           draft: true
           prerelease: false
+          files: |
+            dist/**/win-x64.exe
+            dist/**/win-x64 Portable.exe
+            dist/**/linux-amd64.deb
+            dist/**/linux-x86_64.AppImage
+            dist/**/linux-x86_64.rpm
+            dist/**/mac-arm64.dmg
+            dist/**/mac-x64.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
