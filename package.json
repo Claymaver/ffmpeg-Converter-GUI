@@ -7,18 +7,22 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:mac-arm": "electron-builder --mac --arm64",
+    "build:mac-intel": "electron-builder --mac --x64",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
     "dist": "electron-builder"
   },
   "keywords": ["ffmpeg", "video", "converter", "electron"],
-  "author": "Clau MacDonald",
+  "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.13.3"
   },
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@ffprobe-installer/ffprobe": "^2.1.2",
     "fluent-ffmpeg": "^2.1.2"
   },
   "build": {
@@ -32,31 +36,67 @@
       "node_modules/**/*",
       "package.json"
     ],
-    "extraResources": [
-      {
-        "from": "node_modules/@ffmpeg-installer/ffmpeg",
-        "to": "ffmpeg-installer",
-        "filter": ["**/*"]
-      },
-      {
-        "from": "node_modules/@ffprobe-installer/ffprobe",
-        "to": "ffprobe-installer",
-        "filter": ["**/*"]
-      }
-    ],
     "win": {
-      "target": ["nsis"],
-      "icon": "assets/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FFmpeg Converter Pro"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
       "category": "public.app-category.video",
-      "icon": "assets/icon.icns"
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "FFmpeg Converter Pro",
+      "icon": "build/icon.icns",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
       "category": "AudioVideo",
-      "icon": "assets/icon.png"
+      "icon": "build/icon.png",
+      "maintainer": "your-email@example.com"
+    },
+    "deb": {
+      "depends": ["ffmpeg"]
+    },
+    "rpm": {
+      "depends": ["ffmpeg"]
     }
   }
 }

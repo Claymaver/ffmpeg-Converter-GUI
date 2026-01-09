@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // FFmpeg operations
   checkFFmpeg: () => ipcRenderer.invoke('check-ffmpeg'),
+  installFFmpeg: () => ipcRenderer.invoke('install-ffmpeg'),
+  setFFmpegPath: () => ipcRenderer.invoke('set-ffmpeg-path'),
   probeFile: (filePath) => ipcRenderer.invoke('probe-file', filePath),
   convertFile: (filePath, settings) => ipcRenderer.invoke('convert-file', filePath, settings),
   

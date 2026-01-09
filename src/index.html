@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FFmpeg Converter Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
       margin: 0;
@@ -13,193 +14,34 @@
 
     body {
       overflow: hidden;
-      user-select: none;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background-color: #0a0e12;
-      color: #e0e8f0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 15px;
     }
 
-    /* Layout */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .flex-1 { flex: 1; }
-    .flex-shrink-0 { flex-shrink: 0; }
-    .min-h-0 { min-height: 0; }
-    .min-w-0 { min-width: 0; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
-    .gap-6 { gap: 24px; }
-    .w-full { width: 100%; }
-    .w-96 { width: 384px; }
-    .w-4 { width: 16px; }
-    .h-2 { height: 8px; }
-    .h-20 { height: 80px; }
-    .space-y-2 > * + * { margin-top: 8px; }
-    .space-y-3 > * + * { margin-top: 12px; }
-    .space-y-4 > * + * { margin-top: 16px; }
-
-    /* Padding & Margin */
-    .p-2 { padding: 8px; }
-    .p-3 { padding: 12px; }
-    .p-4 { padding: 16px; }
-    .px-2 { padding-left: 8px; padding-right: 8px; }
-    .px-3 { padding-left: 12px; padding-right: 12px; }
-    .px-4 { padding-left: 16px; padding-right: 16px; }
-    .px-6 { padding-left: 24px; padding-right: 24px; }
-    .py-1 { padding-top: 4px; padding-bottom: 4px; }
-    .py-2 { padding-top: 8px; padding-bottom: 8px; }
-    .py-3 { padding-top: 12px; padding-bottom: 12px; }
-    .pb-2 { padding-bottom: 8px; }
-    .pb-3 { padding-bottom: 12px; }
-    .pt-4 { padding-top: 16px; }
-    .mb-1 { margin-bottom: 4px; }
-    .mb-2 { margin-bottom: 8px; }
-    .mb-3 { margin-bottom: 12px; }
-
-    /* Grid */
-    .grid { display: grid; }
-    .grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-    .col-span-1 { grid-column: span 1; }
-    .col-span-2 { grid-column: span 2; }
-    .col-span-6 { grid-column: span 6; }
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
-
-    /* Colors & Backgrounds */
-    .bg-gray-900 { background-color: #0a0e12; }
-    .bg-gray-850 { background-color: #0f1419; }
-    .bg-gray-800 { background-color: #151b23; }
-    .bg-gray-750 { background-color: #1a202a; }
-    .bg-gray-700 { background-color: #242e3c; }
-    .bg-red-600 { background-color: #dc2626; }
-    .bg-red-700 { background-color: #b91c1c; }
-    .bg-blue-600 { background-color: #10b981; }
-    .bg-blue-700 { background-color: #059669; }
-    .bg-green-600 { background-color: #10b981; }
-    .bg-green-700 { background-color: #059669; }
-    .bg-purple-600 { background-color: #10b981; }
-    .bg-purple-700 { background-color: #059669; }
-    .bg-orange-600 { background-color: #10b981; }
-    .bg-orange-700 { background-color: #059669; }
-    .text-gray-400 { color: #c0d0e0; }
-    .text-gray-500 { color: #a8bace; }
-    .text-gray-300 { color: #e0e8f0; }
-    .text-green-300 { color: #6ee7b7; }
-    .text-red-300 { color: #fca5a5; }
-    .text-blue-300 { color: #7ee8c2; }
-    .text-red-400 { color: #f87171; }
-
-    /* Borders */
-    .border { border: 1px solid; }
-    .border-b { border-bottom: 1px solid; }
-    .border-l { border-left: 1px solid; }
-    .border-t { border-top: 1px solid; }
-    .border-2 { border: 2px solid; }
-    .border-gray-700 { border-color: #242e3c; }
-    .border-red-900 { border-color: #7f1d1d; }
-
-    /* Text */
-    .text-xs { font-size: 13px; }
-    .text-sm { font-size: 14px; }
-    .text-xl { font-size: 20px; }
-    .text-lg { font-size: 18px; }
-    .font-sans { font-family: sans-serif; }
-    .font-medium { font-weight: 600; }
-    .font-bold { font-weight: 700; }
-    .font-mono { font-family: monospace; }
-    .opacity-50 { opacity: 0.5; }
-    .opacity-75 { opacity: 0.75; }
-    .opacity-90 { opacity: 0.9; }
-
-    /* Utilities */
-    .rounded { border-radius: 6px; }
-    .rounded-lg { border-radius: 8px; }
-    .rounded-full { border-radius: 9999px; }
-    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
-    .cursor-pointer { cursor: pointer; }
-    .cursor-not-allowed { cursor: not-allowed; }
-    .overflow-hidden { overflow: hidden; }
-    .overflow-y-auto { overflow-y: auto; }
-    .transition-colors { transition: background-color 0.2s, color 0.2s; }
-    .transition-opacity { transition: opacity 0.2s; }
-    .transition-all { transition: all 0.2s; }
-
-    /* Hover States */
-    .hover\:bg-blue-700:hover { background-color: #059669; }
-    .hover\:bg-red-700:hover { background-color: #b91c1c; }
-    .hover\:bg-green-700:hover { background-color: #059669; }
-    .hover\:bg-gray-600:hover { background-color: #2a3646; }
-    .hover\:bg-gray-750:hover { background-color: #1a202a; }
-    .hover\:bg-purple-500:hover { background-color: #10b981; }
-    .hover\:bg-orange-500:hover { background-color: #10b981; }
-    .hover\:opacity-90:hover { opacity: 0.9; }
-    .hover\:text-gray-300:hover { color: #e0e8f0; }
-
-    /* Disabled */
-    .disabled\:opacity-50:disabled { opacity: 0.5; }
-    .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
-
-    /* Primary Color - Mint Green */
-    .gradient-bg {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    /* Form Elements */
-    select, input[type="text"], input[type="range"] {
-      font-size: 14px;
-      color: #e0e8f0;
-    }
-
-    input[type="text"], select {
-      background-color: #151b23;
-      border: 1px solid #242e3c;
-      padding: 8px 12px;
-      border-radius: 6px;
-    }
-
-    input[type="text"]:focus, select:focus {
-      outline: none;
-      border-color: #10b981;
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
-    }
-
-    input[type="checkbox"] {
-      cursor: pointer;
-      accent-color: #10b981;
-    }
-
-    /* Progress Bar */
-    .progress-bar {
-      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-      transition: width 0.3s ease;
-    }
-
-    /* Tabs */
     .tab-button {
-      transition: all 0.2s;
+      background: #1e1e1e;
+      border: none;
+      color: #888;
+      padding: 12px 24px;
       cursor: pointer;
-      text-align: center;
-      background-color: #1a202a;
+      transition: all 0.2s;
       border-bottom: 3px solid transparent;
-      color: #c0d0e0;
       font-weight: 600;
     }
 
-    .tab-button.active {
-      background-color: #10b981;
-      color: #0a0e12;
-      border-bottom: 3px solid #10b981;
+    .tab-button:hover {
+      background: #252525;
+      color: #bbb;
     }
 
-    .tab-button:not(.active):hover {
-      background-color: #242e3c;
+    .tab-button.active {
+      background: #2a2a2a;
+      color: #fff;
+      border-bottom-color: #3b82f6;
     }
 
     .tab-content {
@@ -210,248 +52,344 @@
       display: block;
     }
 
-    /* Range Slider */
-    input[type="range"] {
-      width: 100%;
-      accent-color: #10b981;
+    .file-item {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
     }
 
-    input[type="range"]::-webkit-slider-thumb {
-      background: #10b981;
+    .file-item:hover {
+      border-color: #444;
+      background: #252525;
+    }
+
+    .progress-bar-bg {
+      background: #2a2a2a;
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      height: 100%;
+      transition: width 0.3s ease;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+      );
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+      transition: all 0.2s;
     }
 
-    input[type="range"]::-moz-range-thumb {
-      background: #10b981;
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: #2a2a2a;
+      color: #e0e0e0;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: 1px solid #444;
+      border-radius: 6px;
       cursor: pointer;
+      transition: all 0.2s;
     }
 
-    /* Scrollbar */
+    .btn-secondary:hover {
+      background: #333;
+      border-color: #555;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .input-field {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pending { background: #374151; color: #9ca3af; }
+    .status-processing { 
+      background: #1e40af; 
+      color: #93c5fd;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .status-success { background: #065f46; color: #6ee7b7; }
+    .status-error { background: #991b1b; color: #fca5a5; }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #0f1419;
+      background: #1e1e1e;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #242e3c;
+      background: #444;
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #2a3646;
+      background: #555;
     }
 
-    /* File Item */
-    .file-item {
-      transition: background-color 0.2s;
+    .log-line {
+      padding: 6px 12px;
+      border-left: 3px solid transparent;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
     }
 
-    .file-item:hover {
-      background-color: #1a202a;
+    .log-success { color: #6ee7b7; border-left-color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    .log-error { color: #fca5a5; border-left-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+    .log-info { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    .log-warn { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+    .preset-card {
+      background: #1e1e1e;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    /* Preset Buttons */
-    .preset-btn {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #0a0e12;
-      font-weight: 600;
-    }
-
-    .preset-btn:hover {
-      background: linear-gradient(135deg, #13d894 0%, #0aa876 100%);
+    .preset-card:hover {
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
   </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-  
+<body>
+
   <!-- Header -->
-  <div class="gradient-bg px-6 py-3 shadow-lg flex-shrink-0">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold">FFmpeg Converter Pro</h1>
-      <div class="flex gap-6 text-sm">
+  <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl">🎬</div>
+      <div>
+        <h1 class="text-2xl font-bold text-white">FFmpeg Converter Pro</h1>
+        <p class="text-sm text-blue-100">Professional Batch Video Converter</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <button id="install-ffmpeg-btn" class="btn-success px-4 py-2 rounded-lg text-sm">
+        📥 Install FFmpeg
+      </button>
+      <div class="text-right text-sm text-white">
         <div>Files: <span id="total-files" class="font-bold">0</span></div>
-        <div>Success: <span id="success-count" class="font-bold text-green-300">0</span></div>
-        <div>Failed: <span id="fail-count" class="font-bold text-red-300">0</span></div>
-        <div>Space Saved: <span id="space-saved" class="font-bold text-blue-300">0 MB</span></div>
+        <div>Saved: <span id="space-saved" class="font-bold">0 MB</span></div>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Area -->
+  <!-- Main Container -->
   <div class="flex flex-1 min-h-0">
-    
-    <!-- Left Panel - File List -->
-    <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Left Side - Files (60%) -->
+    <div class="w-3/5 flex flex-col border-r border-gray-800">
       
       <!-- File Actions -->
-      <div class="p-3 bg-gray-800 border-b border-gray-700 flex-shrink-0">
-        <div class="flex gap-2">
-          <button id="folder-btn" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-medium text-sm transition-colors">
-            📁 Add Folder
-          </button>
-          <button id="files-btn" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-medium text-sm transition-colors">
-            📄 Add Files
-          </button>
-          <button id="clear-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded font-medium text-sm transition-colors">
-            Clear All
-          </button>
-        </div>
-      </div>
-      
-      <!-- File List Header -->
-      <div class="px-4 py-2 bg-gray-800 border-b border-gray-700 flex-shrink-0">
-        <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-400">
-          <div class="col-span-1 text-center">Status</div>
-          <div class="col-span-6">Filename</div>
-          <div class="col-span-2 text-right">Original Size</div>
-          <div class="col-span-2 text-right">New Size</div>
-          <div class="col-span-1 text-right">Saved</div>
-        </div>
+      <div class="p-4 bg-black flex gap-3">
+        <button id="folder-btn" class="btn-primary flex-1">📁 Add Folder</button>
+        <button id="files-btn" class="btn-primary flex-1">📄 Add Files</button>
+        <button id="clear-btn" class="btn-danger px-6">Clear All</button>
       </div>
 
-      <!-- File List Body -->
-      <div id="file-list" class="flex-1 overflow-y-auto p-2"></div>
+      <!-- File List -->
+      <div class="flex-1 p-4 overflow-y-auto" style="min-height: 0;">
+        <div id="file-list"></div>
+        <div id="empty-state" class="flex items-center justify-center h-full text-gray-500">
+          <div class="text-center">
+            <div class="text-6xl mb-4">📁</div>
+            <div class="text-lg font-semibold">No Files Added</div>
+            <div class="text-sm">Click "Add Folder" or "Add Files" to begin</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Right Panel - Tabs + Settings -->
-    <div class="w-96 border-l border-gray-700 flex flex-col flex-shrink-0">
+    <!-- Right Side - Settings (40%) -->
+    <div class="w-2/5 flex flex-col bg-black">
       
-      <!-- Tabs Navigation -->
-      <div class="flex border-b border-gray-700 bg-gray-800 flex-shrink-0">
-        <button class="tab-button active flex-1 px-3 py-3 font-medium text-xs" data-tab="presets">
-          <div class="text-lg mb-1"></div>
-          <div>Presets</div>
-        </button>
-        <button class="tab-button flex-1 px-3 py-3 font-medium text-xs" data-tab="video">
-          <div class="text-lg mb-1"></div>
-          <div>Video</div>
-        </button>
-        <button class="tab-button flex-1 px-3 py-3 font-medium text-xs" data-tab="audio">
-          <div class="text-lg mb-1"></div>
-          <div>Audio</div>
-        </button>
-        <button class="tab-button flex-1 px-3 py-3 font-medium text-xs" data-tab="post">
-          <div class="text-lg mb-1"></div>
-          <div>Post</div>
-        </button>
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-800">
+        <button class="tab-button active" data-tab="quick">⚡ Quick</button>
+        <button class="tab-button" data-tab="video">🎬 Video</button>
+        <button class="tab-button" data-tab="audio">🎵 Audio</button>
+        <button class="tab-button" data-tab="advanced">⚙️ Advanced</button>
       </div>
 
-      <!-- Tab Content Area -->
-      <div class="flex-1 overflow-y-auto p-4 bg-gray-850 min-h-0">
-        
-        <!-- Presets Tab -->
-        <div id="tab-presets" class="tab-content active space-y-4">
+      <!-- Tab Content -->
+      <div class="flex-1 overflow-y-auto p-4" style="min-height: 0;">
+
+        <!-- Quick Tab -->
+        <div id="tab-quick" class="tab-content active space-y-4">
+
+          <!-- Presets FIRST -->
           <div>
-            <h3 class="text-sm font-bold mb-2 text-gray-400">BUILT-IN PRESETS</h3>
-            <div class="space-y-2">
-              <button data-preset="tv" class="preset-btn w-full px-4 py-3 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 rounded-lg font-medium transition-all text-left">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl"></span>
-                  <div>
-                    <div class="font-bold">TV Shows</div>
-                    <div class="text-xs opacity-75">720p • CRF 28 • Fast</div>
-                  </div>
-                </div>
-              </button>
-              <button data-preset="movie" class="preset-btn w-full px-4 py-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-lg font-medium transition-all text-left">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl"></span>
-                  <div>
-                    <div class="font-bold">Movies</div>
-                    <div class="text-xs opacity-75">1080p • CRF 23 • Slow</div>
-                  </div>
-                </div>
-              </button>
-              <button data-preset="quality" class="preset-btn w-full px-4 py-3 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 rounded-lg font-medium transition-all text-left">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl"></span>
-                  <div>
-                    <div class="font-bold">High Quality</div>
-                    <div class="text-xs opacity-75">1080p • CRF 18 • Slower</div>
-                  </div>
-                </div>
-              </button>
-              <button data-preset="small" class="preset-btn w-full px-4 py-3 bg-gradient-to-br from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-lg font-medium transition-all text-left">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl"></span>
-                  <div>
-                    <div class="font-bold">Small Size</div>
-                    <div class="text-xs opacity-75">720p • CRF 30 • H.265</div>
-                  </div>
-                </div>
-              </button>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Presets</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div data-preset="tv" class="preset-card">
+                <div class="text-2xl mb-2">📺</div>
+                <div class="font-bold text-sm">TV Shows</div>
+                <div class="text-xs text-gray-400">720p • Fast</div>
+              </div>
+              <div data-preset="movie" class="preset-card">
+                <div class="text-2xl mb-2">🎬</div>
+                <div class="font-bold text-sm">Movies</div>
+                <div class="text-xs text-gray-400">1080p • Balanced</div>
+              </div>
+              <div data-preset="quality" class="preset-card">
+                <div class="text-2xl mb-2">⭐</div>
+                <div class="font-bold text-sm">High Quality</div>
+                <div class="text-xs text-gray-400">1080p • Slow</div>
+              </div>
+              <div data-preset="small" class="preset-card">
+                <div class="text-2xl mb-2">💾</div>
+                <div class="font-bold text-sm">Small Size</div>
+                <div class="text-xs text-gray-400">720p • HEVC</div>
+              </div>
             </div>
           </div>
 
-          <div class="border-t border-gray-700 pt-4">
-            <h3 class="text-sm font-bold mb-2 text-gray-400">YOUR PRESETS</h3>
+          <!-- Custom Presets SECOND -->
+          <div>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Your Presets</h3>
             <div id="custom-preset-list" class="space-y-2 mb-3"></div>
-            
-            <div class="space-y-2">
-              <input type="text" id="preset-name" placeholder="Preset name..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm" />
-              <button id="save-preset" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-medium text-sm transition-colors">
-                💾 Save Current Settings
-              </button>
+            <div class="flex gap-2">
+              <input type="text" id="preset-name" placeholder="Preset name..." class="input-field flex-1 text-sm">
+              <button id="save-preset" class="btn-secondary px-4">💾 Save</button>
             </div>
           </div>
         </div>
 
         <!-- Video Tab -->
-        <div id="tab-video" class="tab-content space-y-3">
+        <div id="tab-video" class="tab-content space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-2">Container Format</label>
-            <select id="container" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Container</label>
+            <select id="container" class="input-field w-full">
               <option value="mkv">MKV (Matroska)</option>
               <option value="mp4">MP4</option>
               <option value="webm">WebM</option>
               <option value="avi">AVI</option>
             </select>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium mb-2">Video Codec</label>
-            <select id="videoCodec" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Video Codec</label>
+            <select id="videoCodec" class="input-field w-full">
               <option value="libx264">H.264 (x264)</option>
-              <option value="libx265">H.265 (x265 / HEVC)</option>
+              <option value="libx265">H.265 (HEVC)</option>
               <option value="libvpx-vp9">VP9 (WebM)</option>
-              <option value="copy">Copy (no re-encode)</option>
+              <option value="copy">Copy (No Re-encode)</option>
             </select>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium mb-2">Resolution</label>
-            <select id="resolution" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm mb-2">
-              <option value="original">Original (no resize)</option>
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Resolution</label>
+            <select id="resolution" class="input-field w-full">
+              <option value="original">Original (No Resize)</option>
               <option value="2160">4K (2160p)</option>
               <option value="1440">2K (1440p)</option>
               <option value="1080">1080p (Full HD)</option>
               <option value="720">720p (HD)</option>
               <option value="480">480p (SD)</option>
             </select>
-            <div class="flex gap-2">
-              <button data-res="1080" class="res-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">1080p</button>
-              <button data-res="720" class="res-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">720p</button>
-              <button data-res="480" class="res-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">480p</button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">
+              Quality (CRF): <span id="crf-value" class="text-blue-400">23</span>
+            </label>
+            <input type="range" id="crf" min="0" max="51" value="23" class="w-full">
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>Best (0)</span>
+              <span>Worst (51)</span>
             </div>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium mb-2">Quality (CRF): <span id="crf-value" class="text-blue-400">23</span></label>
-            <input type="range" id="crf" min="0" max="51" value="23" class="w-full mb-1">
-            <div class="flex justify-between text-xs text-gray-500">
-              <span>Best</span>
-              <span>Balanced</span>
-              <span>Worst</span>
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium mb-2">Encoding Speed</label>
-            <select id="preset" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Encoding Speed</label>
+            <select id="preset" class="input-field w-full">
               <option value="ultrafast">Ultrafast</option>
               <option value="superfast">Superfast</option>
               <option value="veryfast">Very Fast</option>
@@ -466,100 +404,96 @@
         </div>
 
         <!-- Audio Tab -->
-        <div id="tab-audio" class="tab-content space-y-3">
+        <div id="tab-audio" class="tab-content space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-2">Audio Codec</label>
-            <select id="audioCodec" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm">
-              <option value="aac">AAC (Advanced Audio Coding)</option>
-              <option value="libopus">Opus (High Quality)</option>
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Audio Codec</label>
+            <select id="audioCodec" class="input-field w-full">
+              <option value="aac">AAC</option>
+              <option value="libopus">Opus</option>
               <option value="libmp3lame">MP3</option>
-              <option value="copy">Copy (no re-encode)</option>
+              <option value="copy">Copy (No Re-encode)</option>
             </select>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium mb-2">Audio Bitrate</label>
-            <select id="audio-bitrate" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm mb-2">
-              <option value="64k">64 kbps</option>
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Audio Bitrate</label>
+            <select id="audio-bitrate" class="input-field w-full">
               <option value="96k">96 kbps</option>
               <option value="128k">128 kbps</option>
               <option value="192k" selected>192 kbps</option>
               <option value="256k">256 kbps</option>
               <option value="320k">320 kbps</option>
             </select>
-            <div class="flex gap-2">
-              <button data-br="128k" class="br-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">128</button>
-              <button data-br="192k" class="br-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">192</button>
-              <button data-br="256k" class="br-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">256</button>
-              <button data-br="320k" class="br-btn flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">320</button>
-            </div>
           </div>
         </div>
 
-        <!-- Post-Processing Tab -->
-        <div id="tab-post" class="tab-content space-y-3">
-          <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-800 rounded hover:bg-gray-750 transition-colors">
-            <input type="checkbox" id="clean-filenames" class="w-4 h-4">
-            <div>
-              <div class="font-medium">Clean filenames</div>
-              <div class="text-xs text-gray-400">Remove quality tags, brackets, and extra spaces</div>
-            </div>
-          </label>
+        <!-- Advanced Tab -->
+        <div id="tab-advanced" class="tab-content space-y-4">
           
-          <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-800 rounded hover:bg-gray-750 transition-colors">
-            <input type="checkbox" id="output-subfolder" checked class="w-4 h-4">
-            <div>
-              <div class="font-medium">Output to subfolder</div>
-              <div class="text-xs text-gray-400">Save converted files in "converted" folder</div>
+          <!-- Output Options FIRST -->
+          <div>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Output Options</h3>
+            <div class="space-y-2">
+              <label class="flex items-center gap-3 p-3 bg-gray-900 rounded cursor-pointer hover:bg-gray-800">
+                <input type="checkbox" id="output-subfolder" checked class="w-4 h-4">
+                <span class="text-sm">Output to "converted" folder</span>
+              </label>
+              <label class="flex items-center gap-3 p-3 bg-gray-900 rounded cursor-pointer hover:bg-gray-800">
+                <input type="checkbox" id="clean-filenames" class="w-4 h-4">
+                <span class="text-sm">Clean filenames</span>
+              </label>
+              <label class="flex items-center gap-3 p-3 bg-red-900 border-2 border-red-700 rounded cursor-pointer hover:bg-red-800">
+                <input type="checkbox" id="replace-original" class="w-4 h-4">
+                <span class="text-sm font-semibold">⚠️ Replace original files</span>
+              </label>
             </div>
-          </label>
-          
-          <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-800 rounded hover:bg-gray-750 transition-colors border-2 border-red-900">
-            <input type="checkbox" id="replace-original" class="w-4 h-4">
-            <div>
-              <div class="font-medium text-red-400">⚠️ Replace original files</div>
-              <div class="text-xs text-gray-400">WARNING: This will delete your original files!</div>
-            </div>
-          </label>
+          </div>
+
+          <!-- FFmpeg Status -->
+          <div class="p-4 bg-gray-900 rounded">
+            <h3 class="font-bold mb-2">FFmpeg Status</h3>
+            <div id="ffmpeg-status" class="text-sm text-gray-400">Checking...</div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Custom FFmpeg Path</h3>
+            <button id="set-ffmpeg-path-btn" class="btn-secondary w-full">
+              📂 Select FFmpeg Executable
+            </button>
+          </div>
+
+          <div class="p-4 bg-blue-900 border border-blue-700 rounded">
+            <h3 class="font-bold mb-2">💡 Tips</h3>
+            <ul class="text-xs space-y-1 text-blue-200">
+              <li>• All subtitle streams are copied automatically</li>
+              <li>• Multiple audio tracks are preserved</li>
+              <li>• Chapter markers are maintained</li>
+              <li>• Use H.265 for smaller files</li>
+              <li>• Lower CRF = better quality</li>
+            </ul>
+          </div>
         </div>
 
       </div>
 
-      <!-- Bottom Section - Controls and Logs -->
-      <div class="border-t border-gray-700 bg-gray-800 flex-shrink-0">
-        <!-- Convert Button -->
-        <div class="p-3 flex gap-2">
-          <button id="convert-btn" class="flex-1 gradient-bg px-6 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity">
-            ▶️ Start
-          </button>
-          <button id="stop-btn" disabled class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-            ⏹️ Stop
-          </button>
-        </div>
-        
-        <!-- Progress Bar -->
-        <div class="px-3 pb-2">
-          <div class="flex justify-between text-xs mb-1">
-            <span class="text-gray-400">Progress</span>
-            <span id="progress-text" class="font-mono">0%</span>
-          </div>
-          <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div id="progress-bar" class="gradient-bg h-full progress-bar" style="width: 0%"></div>
-          </div>
-        </div>
-        
-        <!-- Log Container -->
-        <div class="px-3 pb-3">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-xs text-gray-400 font-medium">Activity Log</span>
-            <button id="clear-log-btn" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">Clear</button>
-          </div>
-          <div id="log-container" class="bg-gray-900 rounded p-2 h-20 overflow-y-auto text-xs font-mono"></div>
-        </div>
+      <!-- Convert Button -->
+      <div class="p-4 bg-gradient-to-r from-blue-600 to-blue-500">
+        <button id="convert-btn" class="w-full bg-white text-blue-600 font-bold py-4 rounded-lg text-lg hover:bg-blue-50 transition-all">
+          ▶️ Start Batch Conversion
+        </button>
       </div>
 
     </div>
 
+  </div>
+
+  <!-- Bottom Log Panel -->
+  <div class="h-48 bg-black border-t border-gray-800 flex flex-col">
+    <div class="px-4 py-2 bg-gray-900 flex items-center justify-between border-b border-gray-800">
+      <span class="text-sm font-bold text-gray-300">Activity Log</span>
+      <button id="clear-log-btn" class="text-xs text-gray-500 hover:text-gray-300">Clear Log</button>
+    </div>
+    <div id="log-container" class="flex-1 overflow-y-auto p-2"></div>
   </div>
 
   <script src="renderer.js"></script>

@@ -16,6 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCustomPresetList();
   checkFFmpeg();
   log('Application ready', 'info');
+  
+  // Set up conversion progress listener
+  window.electronAPI.onConversionProgress((data) => {
+    if (currentFileIndex >= 0 && currentFileIndex < files.length) {
+      const progress = Math.round(data.percent || 0);
+      files[currentFileIndex].progress = progress;
+      updateFileItem(currentFileIndex);
+      
+      // Log progress every 10%
+      if (progress % 10 === 0 && progress > 0) {
+        console.log(`File ${currentFileIndex + 1} progress: ${progress}%`);
+      }
+    }
+  });
+  
+  // Set up log listener
+  window.electronAPI.onConversionLog((message) => {
+    // Don't log the "Starting:" message as it's too verbose
+    if (!message.startsWith('Starting:')) {
+      log(message, 'info');
+    }
+  });
 });
 
 // Load presets from localStorage
@@ -41,19 +63,19 @@ function savePresets() {
 function updateCustomPresetList() {
   const container = document.getElementById('custom-preset-list');
   if (customPresets.length === 0) {
-    container.innerHTML = '<div class="text-gray-500 text-xs text-center py-2">No custom presets yet</div>';
+    container.innerHTML = '<div class="text-gray-500 text-xs text-center py-2">No custom presets</div>';
     return;
   }
   
   container.innerHTML = '';
   customPresets.forEach((preset, index) => {
     const div = document.createElement('div');
-    div.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded hover:bg-gray-700 transition-colors';
+    div.className = 'flex items-center gap-2 p-2 bg-gray-900 rounded';
     div.innerHTML = `
-      <button class="flex-1 text-left text-sm font-medium" onclick="applyCustomPreset(${index})">
+      <button class="flex-1 text-left text-sm" onclick="applyCustomPreset(${index})">
         ${preset.name}
       </button>
-      <button onclick="deletePreset(${index})" class="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs transition-colors">
+      <button onclick="deletePreset(${index})" class="text-red-400 hover:text-red-300 text-xs px-2">
         ✕
       </button>
     `;
@@ -105,7 +127,10 @@ function getCurrentSettings() {
     resolution: document.getElementById('resolution').value,
     crf: document.getElementById('crf').value,
     preset: document.getElementById('preset').value,
-    audioBitrate: document.getElementById('audio-bitrate').value
+    audioBitrate: document.getElementById('audio-bitrate').value,
+    outputToSubfolder: document.getElementById('output-subfolder').checked,
+    cleanFilenames: document.getElementById('clean-filenames').checked,
+    replaceOriginal: document.getElementById('replace-original').checked
   };
 }
 
@@ -127,14 +152,10 @@ function initializeTabs() {
     tab.addEventListener('click', () => {
       const tabName = tab.dataset.tab;
       
-      // Remove active from all tabs
       tabs.forEach(t => t.classList.remove('active'));
-      // Add active to clicked tab
       tab.classList.add('active');
       
-      // Hide all content
       contents.forEach(c => c.classList.remove('active'));
-      // Show selected content
       const activeContent = document.getElementById(`tab-${tabName}`);
       if (activeContent) {
         activeContent.classList.add('active');
@@ -146,10 +167,51 @@ function initializeTabs() {
 // Check FFmpeg availability
 async function checkFFmpeg() {
   const result = await window.electronAPI.checkFFmpeg();
+  const statusEl = document.getElementById('ffmpeg-status');
+  
   if (result.available) {
-    log('✓ FFmpeg and FFprobe detected', 'success');
+    statusEl.innerHTML = `
+      <div class="text-green-400">✓ FFmpeg Available</div>
+      <div class="text-xs text-gray-500 mt-1">${result.ffmpegPath}</div>
+    `;
+    log('✓ FFmpeg detected', 'success');
   } else {
-    log('⚠ FFmpeg not found - install will happen automatically', 'warn');
+    statusEl.innerHTML = `
+      <div class="text-yellow-400">⚠ FFmpeg Not Found</div>
+      <div class="text-xs text-gray-400 mt-1">Click "Install FFmpeg" button to install</div>
+    `;
+    log('⚠ FFmpeg not found', 'warn');
+  }
+}
+
+// Install FFmpeg
+async function installFFmpeg() {
+  log('Starting FFmpeg installation...', 'info');
+  const result = await window.electronAPI.installFFmpeg();
+  
+  if (result.error) {
+    log(`Installation error: ${result.error}`, 'error');
+  } else if (result.canceled) {
+    log('Installation canceled', 'warn');
+  } else if (result.message) {
+    log(result.message, 'success');
+  } else {
+    log('Please follow the installation instructions', 'info');
+  }
+  
+  // Re-check FFmpeg after installation attempt
+  setTimeout(checkFFmpeg, 2000);
+}
+
+// Set custom FFmpeg path
+async function setFFmpegPath() {
+  const result = await window.electronAPI.setFFmpegPath();
+  
+  if (result.success) {
+    log(`FFmpeg path set: ${result.ffmpegPath}`, 'success');
+    checkFFmpeg();
+  } else if (result.error) {
+    log(`Error: ${result.error}`, 'error');
   }
 }
 
@@ -159,27 +221,16 @@ function initializeButtons() {
   document.getElementById('files-btn').addEventListener('click', selectFiles);
   document.getElementById('clear-btn').addEventListener('click', clearFiles);
   document.getElementById('convert-btn').addEventListener('click', startConversion);
-  document.getElementById('stop-btn').addEventListener('click', stopConversion);
   document.getElementById('clear-log-btn').addEventListener('click', clearLog);
   document.getElementById('save-preset').addEventListener('click', saveNewPreset);
+  document.getElementById('install-ffmpeg-btn').addEventListener('click', installFFmpeg);
+  document.getElementById('set-ffmpeg-path-btn').addEventListener('click', setFFmpegPath);
 }
 
 // Settings event listeners
 function initializeSettings() {
   document.getElementById('crf').addEventListener('input', (e) => {
     document.getElementById('crf-value').textContent = e.target.value;
-  });
-  
-  document.querySelectorAll('.res-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('resolution').value = btn.dataset.res;
-    });
-  });
-  
-  document.querySelectorAll('.br-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('audio-bitrate').value = btn.dataset.br;
-    });
   });
 }
 
@@ -192,11 +243,11 @@ function initializePresets() {
     small: { resolution: '720', crf: '30', preset: 'fast', videoCodec: 'libx265', audioCodec: 'aac', container: 'mp4', audioBitrate: '128k' }
   };
   
-  document.querySelectorAll('.preset-btn').forEach(btn => {
+  document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', () => {
       const preset = presets[btn.dataset.preset];
       applyPreset(preset);
-      log(`Applied ${btn.textContent.trim()} preset`, 'info');
+      log(`Applied ${btn.querySelector('.font-bold').textContent} preset`, 'info');
     });
   });
 }
@@ -225,12 +276,12 @@ async function selectFolder() {
     } else if (scanResult.files.length === 0) {
       log('No video files found in folder', 'warn');
     } else {
-      // Files now come with size property from main process
       files = scanResult.files.map(file => ({ 
         path: file.path, 
         status: 'pending', 
         originalSize: file.size, 
-        newSize: 0 
+        newSize: 0,
+        progress: 0
       }));
       updateFileList();
       log(`Found ${files.length} video files`, 'success');
@@ -242,12 +293,12 @@ async function selectFolder() {
 async function selectFiles() {
   const result = await window.electronAPI.selectFiles();
   if (!result.canceled && result.files) {
-    // Files now come with size property from main process
     files = result.files.map(file => ({ 
       path: file.path, 
       status: 'pending', 
       originalSize: file.size, 
-      newSize: 0 
+      newSize: 0,
+      progress: 0
     }));
     updateFileList();
     log(`Added ${files.length} files`, 'success');
@@ -265,60 +316,65 @@ function clearFiles() {
   failCount = 0;
   totalSpaceSaved = 0;
   updateFileList();
+  updateStats();
   log('Cleared file list', 'info');
 }
 
 // Update file list UI
 function updateFileList() {
   const container = document.getElementById('file-list');
-  container.innerHTML = '';
+  const emptyState = document.getElementById('empty-state');
   
   if (files.length === 0) {
-    container.innerHTML = '<div class="text-gray-500 text-center py-12">No files selected<br/><span class="text-sm">Click "Add Folder" or "Add Files" to begin</span></div>';
+    container.innerHTML = '';
+    emptyState.style.display = 'flex';
     return;
   }
   
+  emptyState.style.display = 'none';
+  container.innerHTML = '';
+  
   files.forEach((file, index) => {
     const div = document.createElement('div');
-    div.className = 'file-item px-4 py-2 rounded';
-    
-    let statusIcon = '';
-    let statusColor = '';
-    
-    switch (file.status) {
-      case 'pending':
-        statusIcon = '○';
-        statusColor = 'text-gray-400';
-        break;
-      case 'processing':
-        statusIcon = '◐';
-        statusColor = 'text-blue-400';
-        break;
-      case 'success':
-        statusIcon = '✓';
-        statusColor = 'text-green-400';
-        break;
-      case 'error':
-        statusIcon = '✗';
-        statusColor = 'text-red-400';
-        break;
-    }
+    div.className = 'file-item';
+    div.id = `file-${index}`;
     
     const filename = file.path.split(/[\\/]/).pop();
     const originalSize = formatBytes(file.originalSize);
     const newSize = file.newSize > 0 ? formatBytes(file.newSize) : '-';
     const saved = file.newSize > 0 && file.originalSize > file.newSize 
-      ? '-' + formatBytes(file.originalSize - file.newSize)
+      ? formatBytes(file.originalSize - file.newSize)
       : '-';
-    const savedColor = file.newSize > 0 && file.originalSize > file.newSize ? 'text-green-400' : 'text-gray-500';
+    
+    let statusBadge = '';
+    switch (file.status) {
+      case 'pending':
+        statusBadge = '<span class="status-badge status-pending">Pending</span>';
+        break;
+      case 'processing':
+        statusBadge = '<span class="status-badge status-processing">Processing</span>';
+        break;
+      case 'success':
+        statusBadge = '<span class="status-badge status-success">Complete</span>';
+        break;
+      case 'error':
+        statusBadge = '<span class="status-badge status-error">Failed</span>';
+        break;
+    }
     
     div.innerHTML = `
-      <div class="grid grid-cols-12 gap-2 items-center text-xs">
-        <div class="col-span-1 text-center ${statusColor} text-lg">${statusIcon}</div>
-        <div class="col-span-6 truncate" title="${filename}">${filename}</div>
-        <div class="col-span-2 text-right text-gray-400">${originalSize}</div>
-        <div class="col-span-2 text-right ${file.status === 'success' ? 'text-blue-400' : 'text-gray-500'}">${newSize}</div>
-        <div class="col-span-1 text-right ${savedColor} font-mono">${saved}</div>
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex-1">
+          <div class="font-semibold text-sm">${filename}</div>
+          <div class="text-xs text-gray-400">Original: ${originalSize} → New: ${newSize} | Saved: ${saved}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          ${file.status === 'processing' ? `<span class="text-blue-400 font-bold text-sm">${Math.round(file.progress || 0)}%</span>` : ''}
+          ${statusBadge}
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: ${Math.round(file.progress || 0)}%"></div>
       </div>
     `;
     
@@ -328,29 +384,56 @@ function updateFileList() {
   updateStats();
 }
 
+// Update single file item
+function updateFileItem(index) {
+  const file = files[index];
+  const div = document.getElementById(`file-${index}`);
+  if (!div) return;
+  
+  const filename = file.path.split(/[\\/]/).pop();
+  const originalSize = formatBytes(file.originalSize);
+  const newSize = file.newSize > 0 ? formatBytes(file.newSize) : '-';
+  const saved = file.newSize > 0 && file.originalSize > file.newSize 
+    ? formatBytes(file.originalSize - file.newSize)
+    : '-';
+  
+  let statusBadge = '';
+  switch (file.status) {
+    case 'pending':
+      statusBadge = '<span class="status-badge status-pending">Pending</span>';
+      break;
+    case 'processing':
+      statusBadge = '<span class="status-badge status-processing">Processing</span>';
+      break;
+    case 'success':
+      statusBadge = '<span class="status-badge status-success">Complete</span>';
+      break;
+    case 'error':
+      statusBadge = '<span class="status-badge status-error">Failed</span>';
+      break;
+  }
+  
+  div.innerHTML = `
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex-1">
+        <div class="font-semibold text-sm">${filename}</div>
+        <div class="text-xs text-gray-400">Original: ${originalSize} → New: ${newSize} | Saved: ${saved}</div>
+      </div>
+      <div class="flex items-center gap-3">
+        ${file.status === 'processing' ? `<span class="text-blue-400 font-bold text-sm">${Math.round(file.progress || 0)}%</span>` : ''}
+        ${statusBadge}
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" style="width: ${Math.round(file.progress || 0)}%"></div>
+    </div>
+  `;
+}
+
 // Update statistics
 function updateStats() {
   document.getElementById('total-files').textContent = files.length;
-  document.getElementById('success-count').textContent = successCount;
-  document.getElementById('fail-count').textContent = failCount;
   document.getElementById('space-saved').textContent = formatBytes(totalSpaceSaved);
-}
-
-// Get settings from UI
-function getSettings() {
-  return {
-    container: document.getElementById('container').value,
-    videoCodec: document.getElementById('videoCodec').value,
-    audioCodec: document.getElementById('audioCodec').value,
-    resolution: document.getElementById('resolution').value,
-    crf: document.getElementById('crf').value,
-    preset: document.getElementById('preset').value,
-    audioBitrate: document.getElementById('audio-bitrate').value,
-    trackMode: 'all', // Simplified for fresh build
-    cleanFilenames: document.getElementById('clean-filenames').checked,
-    outputToSubfolder: document.getElementById('output-subfolder').checked,
-    replaceOriginal: document.getElementById('replace-original').checked
-  };
 }
 
 // Start conversion
@@ -360,49 +443,34 @@ async function startConversion() {
     return;
   }
   
-  if (converting) {
-    log('Conversion already in progress', 'warn');
+  // Check FFmpeg
+  const ffmpegCheck = await window.electronAPI.checkFFmpeg();
+  if (!ffmpegCheck.available) {
+    log('FFmpeg not available. Please install FFmpeg first.', 'error');
+    alert('FFmpeg is not installed. Click "Install FFmpeg" button to install it.');
     return;
   }
   
-  // Confirm if replace original is checked
-  const settings = getSettings();
+  const settings = getCurrentSettings();
+  
   if (settings.replaceOriginal) {
-    const confirmed = confirm('WARNING: This will replace your original files! Continue?');
-    if (!confirmed) return;
+    const confirm = window.confirm('⚠️ WARNING: This will DELETE your original files! Are you sure?');
+    if (!confirm) {
+      return;
+    }
   }
   
   converting = true;
-  currentFileIndex = 0;
   successCount = 0;
   failCount = 0;
+  totalSpaceSaved = 0;
   
-  document.getElementById('convert-btn').disabled = true;
-  document.getElementById('stop-btn').disabled = false;
+  log(`Starting batch conversion of ${files.length} files...`, 'info');
   
-  log(`Starting conversion of ${files.length} files...`, 'info');
-  
-  // Set up progress listeners
-  window.electronAPI.onConversionProgress((data) => {
-    updateProgress(data.percent);
-  });
-  
-  window.electronAPI.onConversionLog((message) => {
-    log(message, 'info');
-  });
-  
-  // Process files
   await processFiles(settings);
   
-  // Cleanup
-  window.electronAPI.removeAllListeners('conversion-progress');
-  window.electronAPI.removeAllListeners('conversion-log');
-  
   converting = false;
-  document.getElementById('convert-btn').disabled = false;
-  document.getElementById('stop-btn').disabled = true;
-  
-  log(`✓ Batch complete: ${successCount} succeeded, ${failCount} failed`, 'info');
+  log(`Batch complete! Success: ${successCount}, Failed: ${failCount}`, successCount > 0 ? 'success' : 'error');
 }
 
 // Process files sequentially
@@ -412,90 +480,80 @@ async function processFiles(settings) {
     const file = files[i];
     
     file.status = 'processing';
-    updateFileList();
+    file.progress = 0;
+    updateFileItem(i);
     
-    log(`Converting file ${i + 1}/${files.length}: ${file.path.split(/[\\/]/).pop()}`, 'info');
+    const filename = file.path.split(/[\\/]/).pop();
+    log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+    log(`[${i + 1}/${files.length}] Starting: ${filename}`, 'info');
+    log(`Settings: ${settings.videoCodec} / ${settings.audioCodec} / ${settings.resolution}p`, 'info');
     
+    const startTime = Date.now();
     const result = await window.electronAPI.convertFile(file.path, settings);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     
     if (result.error) {
       file.status = 'error';
+      file.progress = 0;
       failCount++;
-      log(`✗ Failed: ${result.error}`, 'error');
+      log(`✗ FAILED after ${elapsed}s: ${result.error}`, 'error');
     } else {
       file.status = 'success';
+      file.progress = 100;
       successCount++;
       
-      // Use output size from main process
       if (result.outputSize) {
         file.newSize = result.outputSize;
         
-        // Calculate space saved
         if (file.originalSize > file.newSize) {
           const saved = file.originalSize - file.newSize;
+          const percent = ((saved / file.originalSize) * 100).toFixed(1);
           totalSpaceSaved += saved;
-          log(`Saved ${formatBytes(saved)}`, 'success');
+          log(`✓ COMPLETE in ${elapsed}s - Saved ${formatBytes(saved)} (${percent}%)`, 'success');
+        } else {
+          log(`✓ COMPLETE in ${elapsed}s`, 'success');
         }
+      } else {
+        log(`✓ COMPLETE in ${elapsed}s`, 'success');
       }
     }
     
-    updateFileList();
-    updateProgress(((i + 1) / files.length) * 100);
+    updateFileItem(i);
+    updateStats();
   }
-}
-
-// Stop conversion
-function stopConversion() {
-  if (!converting) return;
-  
-  converting = false;
-  log('Stopping conversion...', 'warn');
-  
-  document.getElementById('stop-btn').disabled = true;
-}
-
-// Update progress bar
-function updateProgress(percent) {
-  const progressBar = document.getElementById('progress-bar');
-  const progressText = document.getElementById('progress-text');
-  
-  progressBar.style.width = `${percent}%`;
-  progressText.textContent = `${Math.round(percent)}%`;
 }
 
 // Logging
 function log(message, type = 'info') {
-  const logContainer = document.getElementById('log-container');
-  const entry = document.createElement('div');
-  entry.className = 'text-sm py-1';
+  const container = document.getElementById('log-container');
+  const div = document.createElement('div');
   
   const timestamp = new Date().toLocaleTimeString();
-  let color = '';
+  let className = 'log-line ';
   
   switch (type) {
     case 'success':
-      color = 'text-green-400';
+      className += 'log-success';
       break;
     case 'error':
-      color = 'text-red-400';
+      className += 'log-error';
       break;
     case 'warn':
-      color = 'text-yellow-400';
+      className += 'log-warn';
       break;
     default:
-      color = 'text-gray-300';
+      className += 'log-info';
   }
   
-  entry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${color}">${message}</span>`;
+  div.className = className;
+  div.textContent = `[${timestamp}] ${message}`;
   
-  logContainer.appendChild(entry);
-  logContainer.scrollTop = logContainer.scrollHeight;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
 }
 
-// Clear log
 function clearLog() {
-  const logContainer = document.getElementById('log-container');
-  logContainer.innerHTML = '';
+  const container = document.getElementById('log-container');
+  container.innerHTML = '';
   log('Log cleared', 'info');
 }
-
