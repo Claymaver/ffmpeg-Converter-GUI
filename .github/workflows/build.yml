@@ -2,8 +2,9 @@ name: Build Multi-Platform Installers
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -72,11 +73,17 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get commit SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -92,8 +99,9 @@ jobs:
             artifacts/windows-installer/*
             artifacts/macos-installers/*
             artifacts/linux-installers/*
-          draft: true
-          prerelease: false
+          tag_name: build-${{ steps.vars.outputs.sha_short }}
+          name: Build ${{ steps.vars.outputs.sha_short }}
+          draft: false
+          prerelease: true
           generate_release_notes: true
-        env:
-          GH_TOKEN: ${{ github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
