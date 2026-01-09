@@ -92,7 +92,8 @@ jobs:
             artifacts/windows-installer/*
             artifacts/macos-installers/*
             artifacts/linux-installers/*
-          draft: false
+          draft: true
           prerelease: false
           generate_release_notes: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ github.token }}
